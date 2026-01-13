@@ -2,19 +2,24 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../firebase";
 
-type AuthCtx = { user: User | null; loading: boolean };
-const AuthContext = createContext<AuthCtx | undefined>(undefined);
+type AuthContextType = {
+  user: User | null;
+  loading: boolean;
+};
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
-    return unsub;
+
+    return () => unsub();
   }, []);
 
   return (
@@ -26,7 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth fora do AuthProvider");
+  if (!ctx) {
+    throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  }
   return ctx;
 }
 

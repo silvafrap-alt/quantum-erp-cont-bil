@@ -1,50 +1,50 @@
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
+import { HashRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import CompanyGate from "./components/CompanyGate";
 import SelectCompanyPage from "./pages/SelectCompanyPage";
-import DashboardPage from "./pages/DashboardPage";
 import { useAuth } from "./contexts/AuthContext";
-import { useCompany } from "./contexts/CompanyContext";
 
-function Protected({ children }: { children: JSX.Element }) {
-  const { user, loading } = useAuth();
-  if (loading) return <p>Carregando sessão…</p>;
-  if (!user) return <Navigate to="/" replace />;
-  return children;
+function LoginPage() {
+  return <h1>LOGIN OK</h1>;
 }
 
-function CompanyGate({ children }: { children: JSX.Element }) {
-  const { activeCompany } = useCompany();
-  if (!activeCompany) return <Navigate to="/select-company" replace />;
-  return children;
+function DashboardPage() {
+  const { user } = useAuth();
+  return (
+    <div>
+      <h1>DASHBOARD OK</h1>
+      <p>User: {user?.email}</p>
+    </div>
+  );
 }
 
 export default function App() {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage />} />
 
         <Route
           path="/select-company"
           element={
-            <Protected>
+            <ProtectedRoute>
               <SelectCompanyPage />
-            </Protected>
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/dashboard"
           element={
-            <Protected>
+            <ProtectedRoute>
               <CompanyGate>
                 <DashboardPage />
               </CompanyGate>
-            </Protected>
+            </ProtectedRoute>
           }
         />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<LoginPage />} />
       </Routes>
     </HashRouter>
   );
