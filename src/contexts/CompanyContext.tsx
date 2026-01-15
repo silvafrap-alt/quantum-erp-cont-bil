@@ -1,62 +1,30 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebase";
-import { useAuth } from "./AuthContext";
+import { createContext, useContext, useState } from "react";
 
 export type Company = {
   id: string;
   name: string;
-  ownerUserId: string;
 };
 
 type CompanyContextType = {
   companies: Company[];
   activeCompany: Company | null;
-  setActiveCompanyId: (id: string) => void;
+  setActiveCompany: (company: Company | null) => void;
   loading: boolean;
 };
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 
 export function CompanyProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies] = useState<Company[]>([
+    { id: "1", name: "Quantum Demo" }
+  ]);
+
   const [activeCompany, setActiveCompany] = useState<Company | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchCompanies = async () => {
-     const q = query(collection(db, "companies"));
-
-      const snap = await getDocs(q);
-      const data = snap.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Company, "id">),
-      }));
-
-      setCompanies(data);
-
-      const storedId = localStorage.getItem("activeCompanyId");
-      const found = data.find((c) => c.id === storedId) || null;
-      setActiveCompany(found);
-
-      setLoading(false);
-    };
-
-    fetchCompanies();
-  }, [user]);
-
-  const setActiveCompanyId = (id: string) => {
-    const company = companies.find((c) => c.id === id) || null;
-    setActiveCompany(company);
-    localStorage.setItem("activeCompanyId", id);
-  };
+  const [loading] = useState(false);
 
   return (
     <CompanyContext.Provider
-      value={{ companies, activeCompany, setActiveCompanyId, loading }}
+      value={{ companies, activeCompany, setActiveCompany, loading }}
     >
       {children}
     </CompanyContext.Provider>
@@ -64,9 +32,9 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useCompany() {
-  const ctx = useContext(CompanyContext);
-  if (!ctx) {
-    throw new Error("useCompany deve ser usado dentro de CompanyProvider");
+  const context = useContext(CompanyContext);
+  if (!context) {
+    throw new Error("useCompany must be used within CompanyProvider");
   }
-  return ctx;
+  return context;
 }

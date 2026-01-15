@@ -1,33 +1,29 @@
 import { useCompany } from "../contexts/CompanyContext";
+import type { Company } from "../contexts/CompanyContext";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 
-const { user } = useAuth();
-console.log("UID REAL:", user?.uid);
-
-export default function SelectCompanyPage() {
-  const { companies, selectCompany } = useCompany();
+export default function CompanyPage() {
+  const { companies, setActiveCompany } = useCompany();
   const navigate = useNavigate();
+
+  const handleSelect = (company: Company) => {
+  setActiveCompany(company);
+  navigate("/dashboard");
+};
 
   if (companies.length === 0) {
     return <p>Nenhuma empresa encontrada.</p>;
   }
 
-  const handleSelect = (id: string) => {
-    selectCompany(id);
-    navigate("/dashboard");
-  };
-
   return (
     <div>
-      <h1>Selecione uma empresa</h1>
+      <h1>Empresas</h1>
 
       {companies.map((company) => (
-        <button key={company.id} onClick={() => handleSelect(company.id)}>
+        <button onClick={() => handleSelect(company)}>
           {company.name}
         </button>
       ))}
     </div>
   );
 }
-

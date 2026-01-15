@@ -8,13 +8,16 @@ export default function ProtectedRoute({
 }) {
   const { user, loading } = useAuth();
 
+  // ⏳ Aguarda Firebase decidir
   if (loading) {
-    return <h1>Carregando sessão...</h1>;
+    return <div style={{ padding: 40 }}>A verificar sessão…</div>;
   }
 
+  // ❌ Não autenticado
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  // ✅ Autenticado
   return children;
 }

@@ -7,44 +7,53 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      console.log("LOGIN OK");
       navigate("/dashboard");
-    } catch (err) {
-      console.error(err);
-      setError("Credenciais inválidas");
+    } catch (err: any) {
+      console.error("LOGIN ERROR:", err);
+      setError("Email ou palavra-passe inválidos");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h1>LOGIN PAGE</h1>
+    <div style={{ padding: 40, maxWidth: 400 }}>
+      <h2>Login</h2>
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          style={{ display: "block", marginBottom: 10, width: "100%" }}
+        />
 
-      <br /><br />
+        <input
+          type="password"
+          placeholder="Palavra-passe"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          style={{ display: "block", marginBottom: 10, width: "100%" }}
+        />
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-
-      <br /><br />
-
-      <button onClick={handleLogin}>
-        Entrar
-      </button>
+        <button type="submit" disabled={loading}>
+          {loading ? "A entrar..." : "Entrar"}
+        </button>
+      </form>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
     </div>

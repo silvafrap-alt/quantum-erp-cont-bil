@@ -1,22 +1,7 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import CompanyGate from "./components/CompanyGate";
-import SelectCompanyPage from "./pages/SelectCompanyPage";
-import { useAuth } from "./contexts/AuthContext";
-
-function LoginPage() {
-  return <h1>LOGIN OK</h1>;
-}
-
-function DashboardPage() {
-  const { user } = useAuth();
-  return (
-    <div>
-      <h1>DASHBOARD OK</h1>
-      <p>User: {user?.email}</p>
-    </div>
-  );
-}
 
 export default function App() {
   return (
@@ -25,26 +10,15 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
 
         <Route
-          path="/select-company"
-          element={
-            <ProtectedRoute>
-              <SelectCompanyPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <CompanyGate>
-                <DashboardPage />
-              </CompanyGate>
+              <DashboardPage />
             </ProtectedRoute>
           }
         />
 
-        <Route path="*" element={<LoginPage />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </HashRouter>
   );
