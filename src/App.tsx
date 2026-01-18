@@ -1,25 +1,36 @@
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import NovoLancamento from "./pages/NovoLancamento";
+import AuthGuard from "./components/AuthGuard";
+import { getFirestore } from "firebase/firestore";
 
 export default function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<Navigate to="/login" />} />
+
+        <Route path="/login" element={<Login />} />
 
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
+            <AuthGuard>
+              <Dashboard />
+            </AuthGuard>
           }
         />
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route
+          path="/novo-lancamento"
+          element={
+            <AuthGuard>
+              <NovoLancamento />
+            </AuthGuard>
+          }
+        />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   );
 }

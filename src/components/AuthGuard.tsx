@@ -8,8 +8,8 @@ type Props = {
 };
 
 export default function AuthGuard({ children }: Props) {
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
