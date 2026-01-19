@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { User } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { auth, db } from "../firebase";
 import {
   collection,
   query,
   where,
-  getDocs,
   orderBy,
+  getDocs,
 } from "firebase/firestore";
 
 type Lancamento = {
@@ -23,101 +22,92 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState<User | null>(null);
-  const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
-  const [stats, setStats] = useState({
-    receitas: 0,
-    despesas: 0,
-    saldo: 0,
-  });
   const [loading, setLoading] = useState(true);
+  const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
+  const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
+        setUser(null);
         setLoading(false);
-        navigate("/login");
         return;
       }
 
       setUser(currentUser);
 
-      const q = query(
-        collection(db, "lancamentos"),
-        where("userId", "==", currentUser.uid),
-        orderBy("createdAt", "desc")
-      );
+      try {
+        const q = query(
+          collection(db, "lancamentos"),
+          where("userId", "==", currentUser.uid),
+          orderBy("createdAt", "desc")
+        );
 
-      const snapshot = await getDocs(q);
+        const snapshot = await getDocs(q);
 
-      const rows = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Lancamento, "id">),
-      }));
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<Lancamento, "id">),
+        }));
 
-      setLancamentos(rows);
-
-      const receitas = rows
-        .filter((r) => r.tipo === "receita")
-        .reduce((s, r) => s + r.valor, 0);
-
-      const despesas = rows
-        .filter((r) => r.tipo === "despesa")
-        .reduce((s, r) => s + r.valor, 0);
-
-      setStats({
-        receitas,
-        despesas,
-        saldo: receitas - despesas,
-      });
-
-      setLoading(false);
+        setLancamentos(data);
+      } catch (e) {
+        console.error(e);
+        setErro("Erro ao carregar lançamentos.");
+      } finally {
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
-  }, [navigate]);
+  }, []);
 
-  const logout = async () => {
-    await auth.signOut();
-    navigate("/login");
-  };
+  /* ─────────── RENDERIZAÇÕES SEGURAS ─────────── */
 
-  if (loading) return <p>A carregar dashboard...</p>;
+  if (loading) {
+    return <p style={{ padding: 20 }}>A carregar dashboard…</p>;
+  }
+
+  if (!user) {
+    return (
+      <div style={{ padding: 20 }}>
+        <p>Utilizador não autenticado.</p>
+        <button onClick={() => navigate("/login")}>Ir para Login</button>
+      </div>
+    );
+  }
+
+  if (erro) {
+    return (
+      <div style={{ padding: 20 }}>
+        <p>{erro}</p>
+      </div>
+    );
+  }
 
   return (
-    <main>
-      <header>
-        <h1>Quantum Contábil</h1>
-        <span>Olá, {user?.email}</span>
-        <button onClick={logout}>Logout</button>
-      </header>
+    <main style={{ padding: 20 }}>
+      <h1>Dashboard</h1>
+      <p>Bem-vindo, {user.email}</p>
 
-      <section>
-        <h2>Resumo</h2>
-        <p>Receitas: {stats.receitas}</p>
-        <p>Despesas: {stats.despesas}</p>
-        <p>Saldo: {stats.saldo}</p>
+      <button onClick={() => navigate("/novo-lancamento")}>
+        ➕ Novo Lançamento
+      </button>
 
-        <button onClick={() => navigate("/novo-lancamento")}>
-          ➕ Novo Lançamento
-        </button>
-      </section>
+      <hr />
 
-      <section>
-        <h3>Últimos lançamentos</h3>
+      {lancamentos.length === 0 && <p>Sem lançamentos ainda.</p>}
 
-        {lancamentos.length === 0 && <p>Sem lançamentos ainda.</p>}
-
-        {lancamentos.length > 0 && (
-          <ul>
-            {lancamentos.map((l) => (
-              <li key={l.id}>
-                {l.data} — {l.tipo} — {l.descricao || "Sem descrição"} —{" "}
-                {l.valor}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {lancamentos.length > 0 && (
+        <ul>
+          {lancamentos.map((l) => (
+            <li key={l.id}>
+              {l.data} — {l.tipo} — {l.descricao || "Sem descrição"} —{" "}
+              {l.valor}
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }
