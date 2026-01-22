@@ -38,10 +38,10 @@ export default function Dashboard() {
 
       try {
         const q = query(
-          collection(db, "lancamentos"),
-          where("userId", "==", currentUser.uid),
-          orderBy("createdAt", "desc")
-        );
+  	  collection(db, "lancamentos"),
+  	  where("userId", "==", user.uid),
+  	  orderBy("createdAt", "desc")
+	);
 
         const snapshot = await getDocs(q);
 

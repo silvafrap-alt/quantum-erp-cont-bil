@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { addDoc, collection, Timestamp } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 export default function NovoLancamento() {
@@ -10,23 +10,12 @@ export default function NovoLancamento() {
   const [valor, setValor] = useState("");
   const [descricao, setDescricao] = useState("");
   const [data, setData] = useState("");
-  const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!auth.currentUser) {
-      navigate("/login");
-    }
-  }, [navigate]);
-
-  const salvar = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
     const user = auth.currentUser;
-    if (!user) {
-      setError("Utilizador não autenticado");
-      return;
-    }
+    if (!user) return;
 
     await addDoc(collection(db, "lancamentos"), {
       userId: user.uid,
@@ -34,26 +23,25 @@ export default function NovoLancamento() {
       valor: Number(valor),
       descricao,
       data,
-      createdAt: Timestamp.now(),
+      createdAt: serverTimestamp(),
     });
 
     navigate("/dashboard");
   };
 
   return (
-    <main>
-      <h1>Novo Lançamento</h1>
-      <form onSubmit={salvar}>
-        <select
-          value={tipo}
-          onChange={(e) => setTipo(e.target.value as "receita" | "despesa")}
-        >
+    <main style={{ padding: 20 }}>
+      <h2>Novo Lançamento</h2>
+
+      <form onSubmit={handleSubmit}>
+        <select value={tipo} onChange={(e) => setTipo(e.target.value as any)}>
           <option value="receita">Receita</option>
           <option value="despesa">Despesa</option>
         </select>
 
         <input
           type="number"
+          placeholder="Valor"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
           required
@@ -68,14 +56,13 @@ export default function NovoLancamento() {
 
         <input
           type="text"
+          placeholder="Descrição"
           value={descricao}
           onChange={(e) => setDescricao(e.target.value)}
         />
 
         <button type="submit">Guardar</button>
       </form>
-
-      {error && <p>{error}</p>}
     </main>
   );
 }
