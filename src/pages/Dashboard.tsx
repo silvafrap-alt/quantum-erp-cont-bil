@@ -37,11 +37,7 @@ export default function Dashboard() {
       setUser(currentUser);
 
       try {
-        const q = query(
-  	  collection(db, "lancamentos"),
- 	  where("userId", "==", user.uid)
-	);
-
+        const q = collection(db, "lancamentos");
         const snapshot = await getDocs(q);
 
         const data = snapshot.docs.map((doc) => ({
