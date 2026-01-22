@@ -39,8 +39,7 @@ export default function Dashboard() {
       try {
         const q = query(
   	  collection(db, "lancamentos"),
-  	  where("userId", "==", user.uid),
-  	  orderBy("createdAt", "desc")
+ 	  where("userId", "==", user.uid)
 	);
 
         const snapshot = await getDocs(q);
